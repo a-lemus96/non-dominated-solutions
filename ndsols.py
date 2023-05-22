@@ -15,7 +15,7 @@ def naive_ndset(sols: ndarray):
     ndsols = []
     for i in range(n):
         for j in range(n):
-            comparison = sum([True if sols[i][k] < sols[j][k] else False
+            comparison = sum([True if sols[j][k] < sols[i][k] else False
                               for k in range(d)])
             if comparison == d:
                 break

@@ -3,6 +3,7 @@ import argparse
 
 # thrid-party modules
 import numpy as np
+from matplotlib import pyplot as plt
 
 # custom modules
 import ndsols
@@ -21,4 +22,8 @@ points = set(points) # use set datastructure to remove duplicated solutions
 points = np.array(tuple(points))
 # find non-dominated solutions using naive algorithm
 non_dominated = ndsols.naive_ndset(points)
-print(non_dominated.shape)
+
+# plot non-dominated solutions
+plt.scatter(points[:, 0], points[:, 1])
+plt.scatter(non_dominated[:, 0], non_dominated[:, 1])
+plt.savefig("nd_naive.png")
