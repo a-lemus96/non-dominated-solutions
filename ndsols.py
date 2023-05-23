@@ -1,27 +1,9 @@
+# stdlib modules
+from typing import Tuple
+
 # third-party modules
 import numpy as np
 from numpy import ndarray
-
-def naive_ndset(sols: ndarray):
-    """Naive algorithm for finding the set of non-dominated solutions for sets
-    of 2D and 3D points. Algorithm evaluates all possible coordinate pairings.
-    ----------------------------------------------------------------------------
-    Args:
-        sols: set of solutions represented as a set of 2D or 3D points
-    Returns:
-        ndsols: set of non-dominated solutions"""
-    n, d = sols.shape # retrieve number of sols and dimension
-    ndsols = []
-    for i in range(n):
-        for j in range(n):
-            comparison = sum([True if sols[j][k] < sols[i][k] else False
-                              for k in range(d)])
-            if comparison == d:
-                break
-        if comparison < d: # solution is non-dominated
-            ndsols.append(sols[i])
-
-    return np.array(ndsols)
 
 def generate_set(n: int, d: int, r: float, ratio: float = 0.) -> ndarray:
     """Generates a set of either 2D or 3D points among which a number is consi-
@@ -52,3 +34,65 @@ def generate_set(n: int, d: int, r: float, ratio: float = 0.) -> ndarray:
     points += r
     
     return points
+
+def naive_algorithm(sols: ndarray) -> ndarray:
+    """Naive algorithm for finding the set of non-dominated solutions for sets
+    of 2D and 3D points. Algorithm evaluates all possible coordinate pairings.
+    ----------------------------------------------------------------------------
+    Args:
+        sols: set of solutions represented as a set of 2D or 3D points
+    Returns:
+        ndsols: set of non-dominated solutions"""
+    n, d = sols.shape # retrieve number of sols and dimension
+    ndsols = []
+    for i in range(n):
+        for j in range(n):
+            comparison = sum([True if sols[j][k] < sols[i][k] else False
+                              for k in range(d)])
+            if comparison == d:
+                break
+        if comparison < d: # solution is non-dominated
+            ndsols.append(sols[i])
+
+    return np.array(ndsols)
+
+def dc_algorithm(sols: ndarray) -> ndarray:
+    """Find the set of non-dominated solutions for sets of 2D and 3D points
+    using a divide and conquer approach. The algorithmic complexity is O(nlogn).
+    ----------------------------------------------------------------------------
+    Args:
+        sols: set of solutions represented as a set of 2D or 3D points
+    Returns:
+        ndsols: set of non-dominated solutions"""
+    n, d = sols.shape # retrieve number of samples and dimension
+    # sort by f1, f2 and f3, in that order
+    sols = sols[np.lexsort((sols[:, 1], sols[:, 0]))]
+    # perform call to recursive function
+    ndsols, _ = solve_2d(sols)
+
+    return ndsols
+
+def solve_2d(sorted_sols: ndarray) -> Tuple[ndarray, int]:
+    """Recursive function to compute the number of non-dominated solutions in a
+    sorted array of solutions by f1, f2 in that order.
+    ---------------------------------------------------------------------------- 
+    Args:
+        sorted_sols: set of solutions sorted by f1, f2
+    Returns:
+        ndsols: set of non-dominated solutions
+        low: lower value of f1 among all non-dominated solutions"""
+    n, _ = sorted_sols.shape # retrieve number of samples
+    if n <= 1: # terminal case
+        return sorted_sols, np.min(sorted_sols[:, 1])
+    left, right = np.array_split(sorted_sols, 2) # split array into two parts
+    left, low = solve_2d(left) # find nd-sols in the left
+    right, _ = solve_2d(right) # find nd-sols in the right
+    # combine solutions
+    rsize, _ = right.shape
+    select = np.ones(rsize, dtype=bool)
+    for idx in range(rsize):
+        if low <= right[idx, 1]:
+            select[idx] = False # reject solution
+    ndsols = np.concatenate((left, right[select]), axis=0)
+    
+    return ndsols, np.min(ndsols[:, 1])
