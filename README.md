@@ -11,6 +11,19 @@ and here is an example of a 3D set with 500 non-dominated solutions out of 500 u
 
 ![sample_3D](https://github.com/a-lemus96/non-dominated-solutions/assets/95151624/b1471818-dbd3-496e-bf9b-2548fdcca5bf)
 
+### Running the Script
+If you want to test the correctness of the algorithms using your textfile of generated datapoints, consider the following format for your text file:
+```
+N -> Number of datapoints
+P1 -> Point 1
+P2 -> Point 2 
+.
+.
+.
+PN -> Point N
+```
+Point coordinates should appear in the `x y z` format, where coordinates are separated by white spaces. Once you have your file ready, run `python correctness.py --filepath --method`. It should generate another file `results.txt` containing the non-dominated solutions. `--method` argument allows you to choose betweeen naive (`1`) and D&C (`2`) algorithms.
+
 ### Running Time Tests
 For each dimension, two main cases were evaluated: 1) All the points are non-dominated and 2) half of the points are non-dominated. This leads to a total of 4 main tests. In each test, 20 evenly spaced input sizes were chosen from the interval $[200, 50\times 10^3]$, a set of random points with the specified proportion of non-dominated solutions was generated and both algorithms where applied (naive and D&C). Execution times for each algorithm on each input size were taken. Here are the plot for the results from the 2D case:
 
