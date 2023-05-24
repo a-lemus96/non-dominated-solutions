@@ -65,10 +65,19 @@ def dc_algorithm(sols: ndarray) -> ndarray:
     Returns:
         ndsols: set of non-dominated solutions"""
     n, d = sols.shape # retrieve number of samples and dimension
-    # sort by f1, f2 and f3, in that order
-    sols = sols[np.lexsort((sols[:, 1], sols[:, 0]))]
-    # perform call to recursive function
-    ndsols, _ = solve_2d(sols)
+    if d == 2:
+        # sort by f1 and f2, in that order
+        sols = sols[np.lexsort((sols[:, 1], sols[:, 0]))]
+        # perform call to recursive function
+        ndsols, _ = solve_2d(sols)
+    if d == 3:
+        # sort by f1, f2 and f3, in that order
+        sols = sols[np.lexsort((sols[:, 2], sols[:, 1], sols[:, 0]))]
+        # sort by f2 and f3, in that order
+        #idxs = np.lexsort((sols[:, 2], sols[:, 1]))
+        
+        # perform call to recursive function
+        ndsols, _ = solve_3d(sols)
 
     return ndsols
 
@@ -80,7 +89,7 @@ def solve_2d(sorted_sols: ndarray) -> Tuple[ndarray, int]:
         sorted_sols: set of solutions sorted by f1, f2
     Returns:
         ndsols: set of non-dominated solutions
-        low: lower value of f1 among all non-dominated solutions"""
+        low: lower value of f2 among all non-dominated solutions"""
     n, _ = sorted_sols.shape # retrieve number of samples
     if n <= 1: # terminal case
         return sorted_sols, np.min(sorted_sols[:, 1])
@@ -96,3 +105,32 @@ def solve_2d(sorted_sols: ndarray) -> Tuple[ndarray, int]:
     ndsols = np.concatenate((left, right[select]), axis=0)
     
     return ndsols, np.min(ndsols[:, 1])
+
+def solve_3d(sorted_sols: ndarray) -> Tuple[ndarray, int]:
+    """Recursive function to compute the number of non-dominated solutions in a
+    sorted array of solutions by f1, f2, f3, in that order.
+    ---------------------------------------------------------------------------- 
+    Args:
+        sorted_sols: set of solutions sorted by f1, f2, f3
+    Returns:
+        ndsols: set of non-dominated solutions
+        low: lower value of f3 among all non-dominated solutions"""
+    n, _ = sorted_sols.shape # retrieve number of samples
+    if n<= 1: # terminal case
+        print(sorted_sols)
+        return sorted_sols, idxs, np.min(sorted_sols[:, 2])
+    left, right = np.array_split(sorted_sols, 2) # split array in halves
+    lsize, _ = left.shape
+    # solve left sub-problem
+    left, low = solve_3d(left)
+    # solve right sub-problem
+    right, _ = solve_3d(right) 
+    # join left and right and sort by f2 and f3
+    join = np.concat(left, right)
+    idxs = np.lexsort((join[:, 2], join[:, 1]))
+    # traverse array of sorted indices by f2 and f3
+    for idx in idxs:
+        if idx < k:
+            # it is an element from the left 
+        else:
+            # it is an element from the right
