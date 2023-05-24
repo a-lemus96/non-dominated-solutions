@@ -58,20 +58,25 @@ for i, ratio in enumerate([0., 0.5]):
     axs[i].legend()
 
 plt.savefig(f"times_{args.d}d.png")
-plt.show()
-exit()
 
-
-'''points = ndsols.generate_set(500, 3, 9, 0.5)
-fig = plt.figure()
-ax = fig.add_subplot(1,2,1, projection='3d')
+# generate 3D points to visualize output
+points = ndsols.generate_set(500, 3, 9, 0.)
+fig = plt.figure(figsize=(6,6))
+ax = fig.add_subplot(1,1,1, projection='3d')
 ax.scatter(points[:, 0], points[:, 1], points[:, 2])
-nds = ndsols.naive_algorithm(points)
-nds = nds[np.lexsort((nds[:, 2], nds[:, 1], nds[:, 0]))]
-ax.scatter(nds[:, 0], nds[:, 1], nds[:, 2])
+nds = ndsols.dc_algorithm(points)
+ax.scatter(nds[:, 0], nds[:, 1], nds[:, 2], label='Non-dominated')
+ax.set_title("500 non-dominated 3D points out of 500")
+ax.legend()
+plt.savefig("sample_3D.png")
 
-ax2 = fig.add_subplot(1,2,2, projection='3d')
-ax2.scatter(points[:, 0], points[:, 1], points[:, 2])
+# generate 2D points to visualize output
+fig = plt.figure(figsize=(6,6))
+points = ndsols.generate_set(50, 2, 9, 0.5)
+ax2 = fig.add_subplot(1,1,1)
+ax2.scatter(points[:, 0], points[:, 1])
 nds2 = ndsols.dc_algorithm(points)
-ax2.scatter(nds2[:, 0], nds2[:, 1], nds2[:, 2])
-plt.show()'''
+ax2.scatter(nds2[:, 0], nds2[:, 1], label='Non-dominated')
+ax2.set_title("25 non-dominated 2D points out of 50")
+ax2.legend()
+plt.savefig("sample_2D.png")
