@@ -43,6 +43,7 @@ def naive_algorithm(sols: ndarray) -> ndarray:
         sols: set of solutions represented as a set of 2D or 3D points
     Returns:
         ndsols: set of non-dominated solutions"""
+    # sort by f1, f2 and f3, in that order
     n, d = sols.shape # retrieve number of sols and dimension
     ndsols = []
     for i in range(n):
@@ -77,7 +78,7 @@ def dc_algorithm(sols: ndarray) -> ndarray:
         #idxs = np.lexsort((sols[:, 2], sols[:, 1]))
         
         # perform call to recursive function
-        ndsols, _ = solve_3d(sols)
+        ndsols = solve_3d(sols)
 
     return ndsols
 
@@ -106,31 +107,37 @@ def solve_2d(sorted_sols: ndarray) -> Tuple[ndarray, int]:
     
     return ndsols, np.min(ndsols[:, 1])
 
-def solve_3d(sorted_sols: ndarray) -> Tuple[ndarray, int]:
+def solve_3d(sorted_sols: ndarray) -> Tuple[ndarray]:
     """Recursive function to compute the number of non-dominated solutions in a
     sorted array of solutions by f1, f2, f3, in that order.
     ---------------------------------------------------------------------------- 
     Args:
         sorted_sols: set of solutions sorted by f1, f2, f3
     Returns:
-        ndsols: set of non-dominated solutions
-        low: lower value of f3 among all non-dominated solutions"""
+        ndsols: set of non-dominated solutions"""
     n, _ = sorted_sols.shape # retrieve number of samples
     if n<= 1: # terminal case
-        print(sorted_sols)
-        return sorted_sols, idxs, np.min(sorted_sols[:, 2])
+        return sorted_sols
     left, right = np.array_split(sorted_sols, 2) # split array in halves
-    lsize, _ = left.shape
-    # solve left sub-problem
-    left, low = solve_3d(left)
-    # solve right sub-problem
-    right, _ = solve_3d(right) 
+    rsize, _ = right.shape
+    
+    left = solve_3d(left) # solve left sub-problem
+    right = solve_3d(right) # solve right sub-problem
+
     # join left and right and sort by f2 and f3
-    join = np.concat(left, right)
+    join = np.concatenate((left, right), axis=0)
     idxs = np.lexsort((join[:, 2], join[:, 1]))
     # traverse array of sorted indices by f2 and f3
+    low = np.inf
+    select = np.ones(len(idxs), dtype=bool)
     for idx in idxs:
-        if idx < k:
-            # it is an element from the left 
+        if idx < len(left):
+            # it is an element from the left
+            if join[idx, 2] < low:
+                low = join[idx, 2] # update lower value of f3
         else:
             # it is an element from the right
+            if low <= join[idx, 2] and not np.isinf(low):
+                select[idx] = False # reject solution
+
+    return join[select]
